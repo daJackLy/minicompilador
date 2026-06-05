@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Minicompilador de Comandas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            width: 600px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1a1a2e;
+            margin-bottom: 8px;
+        }
+
+        p.subtitulo {
+            text-align: center;
+            color: #888;
+            margin-bottom: 24px;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            text-transform: uppercase;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #1a1a2e;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            background: #1a1a2e;
+            color: white;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #16213e;
+        }
+
+        .resultado {
+            margin-top: 24px;
+            padding: 16px;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .aceptada {
+            background: #e6f4ea;
+            border-left: 4px solid #34a853;
+            color: #1e7e34;
+        }
+
+        .rechazada {
+            background: #fce8e6;
+            border-left: 4px solid #ea4335;
+            color: #c0392b;
+        }
+
+        .fase {
+            font-size: 12px;
+            font-weight: bold;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            opacity: 0.7;
+        }
+
+        .mensaje {
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .json-box {
+            background: #1a1a2e;
+            color: #a8ff78;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 13px;
+            margin-top: 12px;
+            white-space: pre;
+        }
+
+        .ejemplos {
+            margin-top: 24px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        .ejemplos span {
+            display: inline-block;
+            background: #f0f2f5;
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 4px 2px;
+            cursor: pointer;
+        }
+
+        .ejemplos span:hover {
+            background: #ddd;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>Minicompilador de Comandas</h1>
+    <p class="subtitulo">Escribe una comanda para validarla</p>
+
+    <input type="text" id="comanda" placeholder="Ingrese comanda" />
+    <button onclick="compilar()">Compilar Comanda</button>
+
+    <div class="resultado" id="resultado">
+        <div class="fase" id="fase"></div>
+        <div class="mensaje" id="mensaje"></div>
+        <div class="json-box" id="json-box" style="display:none"></div>
+    </div>
+</div>
+
+<script>
+    async function compilar() {
+        const comanda = document.getElementById('comanda').value.trim();
+        if (!comanda) return;
+
+        const res = await fetch('/compilar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ comanda })
+        });
+
+        const data = await res.json();
+        const resultado = document.getElementById('resultado');
+        const fase = document.getElementById('fase');
+        const mensaje = document.getElementById('mensaje');
+        const jsonBox = document.getElementById('json-box');
+
+        resultado.style.display = 'block';
+        jsonBox.style.display = 'none';
+
+        if (data.estado === 'ACEPTADA') {
+            resultado.className = 'resultado aceptada';
+            fase.textContent = '✅ Comanda Aceptada';
+            mensaje.textContent = data.mensaje;
+            jsonBox.style.display = 'block';
+            jsonBox.textContent = JSON.stringify(data.datos, null, 2);
+        } else {
+            resultado.className = 'resultado rechazada';
+            fase.textContent = `❌ Error en fase: ${data.fase}`;
+            mensaje.textContent = data.mensaje;
+        }
+    }
+
+    document.getElementById('comanda').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') compilar();
+    });
+</script>
+</body>
+</html>
