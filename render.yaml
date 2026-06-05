@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: minicompilador-comandas
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
